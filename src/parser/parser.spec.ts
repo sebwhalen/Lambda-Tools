@@ -79,19 +79,19 @@ describe('parseLambda', () => {
         },
 
         {
-            input: '(λa.λb.a) c',
+            input: '(λa.(λb.a)) c',
             output:
                 application(
                     lambda(
                         1,
                         'a',
                         lambda(
-                            4,
+                            5,
                             'b',
-                            identifier(7, 'a')
+                            identifier(8, 'a')
                         )
                     ),
-                    identifier(10, 'c')
+                    identifier(12, 'c')
                 )
         }
     ]

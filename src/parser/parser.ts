@@ -4,73 +4,60 @@ import { application, empty, Expression, identifier, lambda } from "./expression
 import { rules } from "./rules"
 import { tokenTypes } from "./tokenTypes";
 
-const parseBinding = (tokens: Array<Token>): Expression => {
-    const argument = tokens.shift();
+const consumeIdentifiers = (tokens: Array<Token>): Expression => {
+    const tail = tokens.at(-1);
 
-    if (!argument) {
-        throw new Error('Invalid end of code.');
-    }
-
-    const { type, position, value } = argument;
-
-    if (type !== tokenTypes.identifier) {
-        throw new Error(`Argument at ${position} is not a valid identifier.`);
-    }
-
-    const endBind = tokens.shift();
-
-    if (!endBind || endBind.type !== tokenTypes.endBind) {
-        throw new Error(`Invalid end of binding expression at ${position}.`)
-    }
-
-    return lambda(
-        position - 1,
-        value,
-        parseLambdaFromTokens(tokens, true)
-    );
-};
-
-
-const getNext = (tokens: Array<Token>, isLambda: boolean = false): Expression => {
-    const next = tokens.shift();
-
-    if (!next) {
+    if (!tail || tail.type !== 'identifier') {
         return empty;
     }
 
-    const { type, position, value } = next;
+    const { position, value } = tokens.pop() as Token;
 
-    switch (type) {
-        case tokenTypes.identifier:
-            return identifier(position, value);
-        case tokenTypes.startBlock:
-            return parseLambdaFromTokens(tokens, isLambda);
-        case tokenTypes.endBlock:
-            if(isLambda) {
-                tokens.unshift(next);
-            }
-            return empty;
-        case tokenTypes.startBind:
-            return parseBinding(tokens);
-        case tokenTypes.endBind:
-            throw new Error(`Invalid end of binding expression at ${position}.`);
-    }
+    return application(
+        consumeIdentifiers(tokens),
+        identifier(position, value)
+    );
+};
 
-    throw new Error(`Unmatched token type ${type}`);
-}
-
-const parseLambdaFromTokens = (tokens: Array<Token>, isLambda: boolean = false): Expression => {
+const parseLambdaFromTokens = (tokens: Array<Token>): Expression => {
     let result: Expression = empty;
 
-    while (true) {
-        const nextExpression = getNext(tokens, isLambda);
+    while (tokens.length > 0) {
+        const token = tokens.pop() as Token;
+        const { position, value, type } = token;
 
-        if (nextExpression === empty) {
-            return result;
+        switch (type) {
+            case tokenTypes.identifier:
+                tokens.push(token)
+                result = application(consumeIdentifiers(tokens), result);
+                break;
+            case tokenTypes.endBlock:
+                result = application(parseLambdaFromTokens(tokens), result);
+                break;
+            case tokenTypes.endBind:
+                const arg = tokens.pop();
+
+                if (arg?.type !== tokenTypes.identifier) {
+                    throw new Error(`Invalid binding at ${position}.`);
+                }
+
+                
+                const symbol = tokens.pop();
+
+                if (symbol?.type !== tokenTypes.startBind) {
+                    throw new Error(`Invalid binding at ${position}.`);
+                }
+
+                result = lambda(arg.position - 1, arg.value, result);
+                break;
+            case tokenTypes.startBlock:
+                return result;
+            case tokenTypes.startBind:
+                throw new Error(`Unexpected lambda symbol at ${position}.`);
         }
-
-        result = application(result, nextExpression);
     }
+
+    return result;
 }
 
 export const parseLambda = (code: string): Expression => {

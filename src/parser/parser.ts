@@ -26,12 +26,12 @@ const parseBinding = (tokens: Array<Token>): Expression => {
     return lambda(
         position - 1,
         value,
-        parseLambdaFromTokens(tokens)
+        parseLambdaFromTokens(tokens, true)
     );
 };
 
 
-const getNext = (tokens: Array<Token>): Expression => {
+const getNext = (tokens: Array<Token>, isLambda: boolean = false): Expression => {
     const next = tokens.shift();
 
     if (!next) {
@@ -44,8 +44,11 @@ const getNext = (tokens: Array<Token>): Expression => {
         case tokenTypes.identifier:
             return identifier(position, value);
         case tokenTypes.startBlock:
-            return parseLambdaFromTokens(tokens);
+            return parseLambdaFromTokens(tokens, isLambda);
         case tokenTypes.endBlock:
+            if(isLambda) {
+                tokens.unshift(next);
+            }
             return empty;
         case tokenTypes.startBind:
             return parseBinding(tokens);
@@ -56,11 +59,11 @@ const getNext = (tokens: Array<Token>): Expression => {
     throw new Error(`Unmatched token type ${type}`);
 }
 
-const parseLambdaFromTokens = (tokens: Array<Token>): Expression => {
+const parseLambdaFromTokens = (tokens: Array<Token>, isLambda: boolean = false): Expression => {
     let result: Expression = empty;
 
     while (true) {
-        const nextExpression = getNext(tokens);
+        const nextExpression = getNext(tokens, isLambda);
 
         if (nextExpression === empty) {
             return result;
@@ -68,7 +71,6 @@ const parseLambdaFromTokens = (tokens: Array<Token>): Expression => {
 
         result = application(result, nextExpression);
     }
-
 }
 
 export const parseLambda = (code: string): Expression => {

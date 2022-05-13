@@ -40,10 +40,10 @@ export const application = (left: Expression, right: Expression): Expression => 
 }
 
 export interface Lambda {
-    type: 'lambda',
-    position: number,
-    argument: string,
-    expression: Expression
+    type: 'lambda';
+    position: number;
+    argument: string;
+    expression: Expression;
 }
 
 export const lambda = (position: number, argument: string, expression: Expression): Lambda => {

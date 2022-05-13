@@ -82,4 +82,14 @@ describe('parseLambda', () => {
             test(`'${input} parses correctly`, () => {
                 expect(parseLambda(input)).toEqual(output);
             }));
+
+    [
+        'λ.',
+        'λ  .',
+        'λan(alksjd)'
+    ].forEach(input => 
+        test(`${input} throws exception`, () => {
+            expect(() => parseLambda(input)).toThrow();
+        }
+    ));
 });

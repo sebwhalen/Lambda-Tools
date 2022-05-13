@@ -19,7 +19,7 @@ const parseBinding = (tokens: Generator<Token>): Expression => {
 
     const endBind = tokens.next();
 
-    if(endBind.done ?? endBind.value.type !== tokenTypes.endBind) {
+    if(endBind.done || endBind.value.type !== tokenTypes.endBind) {
         throw new Error(`Invalid end of binding expression at ${position}.`)
     }
 

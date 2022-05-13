@@ -47,7 +47,7 @@ describe('parseLambda', () => {
         },
 
         {
-            input: 'La.a',
+            input: 'λa.a',
             output:
                 lambda(
                     0,
@@ -57,7 +57,7 @@ describe('parseLambda', () => {
         },
 
         {
-            input: 'a (b c) (La.(d ea))',
+            input: 'a (b c) (λa.(d ea))',
             output:
                 application(
                     application(

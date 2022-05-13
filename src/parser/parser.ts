@@ -7,19 +7,19 @@ import { tokenTypes } from "./tokenTypes";
 const parseBinding = (tokens: Generator<Token>): Expression => {
     const argumentEntry = tokens.next();
 
-    if(argumentEntry.done) {
+    if (argumentEntry.done) {
         throw new Error('Invalid end of code.');
     }
 
-    const {type, position, value} = argumentEntry.value;
+    const { type, position, value } = argumentEntry.value;
 
-    if(type !== tokenTypes.identifier) {
+    if (type !== tokenTypes.identifier) {
         throw new Error(`Argument at ${position} is not a valid identifier.`);
     }
 
     const endBind = tokens.next();
 
-    if(endBind.done || endBind.value.type !== tokenTypes.endBind) {
+    if (endBind.done || endBind.value.type !== tokenTypes.endBind) {
         throw new Error(`Invalid end of binding expression at ${position}.`)
     }
 

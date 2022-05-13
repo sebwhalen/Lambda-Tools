@@ -76,6 +76,23 @@ describe('parseLambda', () => {
                         )
                     )
                 )
+        },
+
+        {
+            input: '(λa.λb.a) c',
+            output:
+                application(
+                    lambda(
+                        1,
+                        'a',
+                        lambda(
+                            4,
+                            'b',
+                            identifier(7, 'a')
+                        )
+                    ),
+                    identifier(10, 'c')
+                )
         }
     ]
         .forEach(({ input, output }) =>
@@ -87,9 +104,9 @@ describe('parseLambda', () => {
         'λ.',
         'λ  .',
         'λan(alksjd)'
-    ].forEach(input => 
+    ].forEach(input =>
         test(`${input} throws exception`, () => {
             expect(() => parseLambda(input)).toThrow();
         }
-    ));
+        ));
 });

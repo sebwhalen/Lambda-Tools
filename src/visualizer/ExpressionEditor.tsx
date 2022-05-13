@@ -9,7 +9,7 @@ export const ExpressionEditor = ({
     expression,
     setExpression
 }: ExpressionEditorProps) =>
-    <section>
+    <section className="lambda-editor">
         <p>λ</p>
         <label>
             <span></span>

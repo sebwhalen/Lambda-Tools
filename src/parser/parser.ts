@@ -4,22 +4,22 @@ import { application, empty, Expression, identifier, lambda } from "./expression
 import { rules } from "./rules"
 import { tokenTypes } from "./tokenTypes";
 
-const parseBinding = (tokens: Generator<Token>): Expression => {
-    const argumentEntry = tokens.next();
+const parseBinding = (tokens: Array<Token>): Expression => {
+    const argument = tokens.shift();
 
-    if (argumentEntry.done) {
+    if (!argument) {
         throw new Error('Invalid end of code.');
     }
 
-    const { type, position, value } = argumentEntry.value;
+    const { type, position, value } = argument;
 
     if (type !== tokenTypes.identifier) {
         throw new Error(`Argument at ${position} is not a valid identifier.`);
     }
 
-    const endBind = tokens.next();
+    const endBind = tokens.shift();
 
-    if (endBind.done || endBind.value.type !== tokenTypes.endBind) {
+    if (!endBind || endBind.type !== tokenTypes.endBind) {
         throw new Error(`Invalid end of binding expression at ${position}.`)
     }
 
@@ -31,14 +31,14 @@ const parseBinding = (tokens: Generator<Token>): Expression => {
 };
 
 
-const getNext = (tokens: Generator<Token>): Expression => {
-    const next = tokens.next();
+const getNext = (tokens: Array<Token>): Expression => {
+    const next = tokens.shift();
 
-    if (next.done) {
+    if (!next) {
         return empty;
     }
 
-    const { type, position, value } = next.value;
+    const { type, position, value } = next;
 
     switch (type) {
         case tokenTypes.identifier:
@@ -56,7 +56,7 @@ const getNext = (tokens: Generator<Token>): Expression => {
     throw new Error(`Unmatched token type ${type}`);
 }
 
-const parseLambdaFromTokens = (tokens: Generator<Token>): Expression => {
+const parseLambdaFromTokens = (tokens: Array<Token>): Expression => {
     let result: Expression = empty;
 
     while (true) {
@@ -72,7 +72,7 @@ const parseLambdaFromTokens = (tokens: Generator<Token>): Expression => {
 }
 
 export const parseLambda = (code: string): Expression => {
-    const tokenGenerator = tokenize(rules, code);
+    const tokens = [...tokenize(rules, code)];
 
-    return parseLambdaFromTokens(tokenGenerator);
+    return parseLambdaFromTokens(tokens);
 };

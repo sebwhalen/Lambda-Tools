@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-      "start": "esbuild src/parser.ts --bundle --outfile=dist/index.js --watch",
+      "start": "esbuild src/index.ts --servedir=dist --bundle --outfile=dist/index.js",
       "test": "jest --watch"
     },
     "keywords": [],

@@ -4,64 +4,99 @@ import { application, empty, Expression, identifier, lambda } from "./expression
 import { rules } from "./rules"
 import { tokenTypes } from "./tokenTypes";
 
-const consumeIdentifiers = (tokens: Array<Token>): Expression => {
-    const tail = tokens.at(-1);
+type Block = (Token | Block)[];
 
-    if (!tail || tail.type !== 'identifier') {
-        return empty;
-    }
-
-    const { position, value } = tokens.pop() as Token;
-
-    return application(
-        consumeIdentifiers(tokens),
-        identifier(position, value)
-    );
-};
-
-const parseLambdaFromTokens = (tokens: Array<Token>): Expression => {
-    let result: Expression = empty;
+const groupBlocks = (tokens: Token[], depth: number = 0): Block => {
+    const results: Block = [];
 
     while (tokens.length > 0) {
-        const token = tokens.pop() as Token;
-        const { position, value, type } = token;
+        const head = tokens.shift()!;
 
-        switch (type) {
-            case tokenTypes.identifier:
-                tokens.push(token)
-                result = application(consumeIdentifiers(tokens), result);
+        switch (head.type) {
+            case tokenTypes.startBlock:
+                results.push(groupBlocks(tokens, depth + 1));
                 break;
             case tokenTypes.endBlock:
-                result = application(parseLambdaFromTokens(tokens), result);
-                break;
-            case tokenTypes.endBind:
-                const arg = tokens.pop();
-
-                if (arg?.type !== tokenTypes.identifier) {
-                    throw new Error(`Invalid binding at ${position}.`);
+                if (depth === 0) {
+                    throw new Error(`Invalid end block at position ${head.position}.  Current chain: ${JSON.stringify(results)}`)
                 }
-
                 
-                const symbol = tokens.pop();
-
-                if (symbol?.type !== tokenTypes.startBind) {
-                    throw new Error(`Invalid binding at ${position}.`);
-                }
-
-                result = lambda(arg.position - 1, arg.value, result);
-                break;
-            case tokenTypes.startBlock:
-                return result;
-            case tokenTypes.startBind:
-                throw new Error(`Unexpected lambda symbol at ${position}.`);
+                return results;
+            default:
+                results.push(head);
         }
     }
 
-    return result;
+    return results;
+};
+
+interface PartialLambda {
+    position: number;
+    argument: string;
+    body: LambdaSet;
 }
+
+type LambdaSet = (Token | PartialLambda | LambdaSet)[]
+
+const groupLambdas = (blocks: Block): LambdaSet => {
+    const [head, ...rest] = blocks;
+
+    if(!head) {
+        return [];
+    }
+
+    if (Array.isArray(head)) {
+        return [groupLambdas(head), ...groupLambdas(rest)];
+    }
+
+    if (head.type !== tokenTypes.startBind) {
+        return [head, ...groupLambdas(rest)];
+    }
+
+    const [arg, separator, ...body] = rest;
+
+    if (
+        Array.isArray(arg) ||
+        arg?.type !== tokenTypes.identifier ||
+        Array.isArray(separator) ||
+        separator?.type !== tokenTypes.endBind
+    ) {
+        throw new Error(`Invalid lambda at position ${head.position}.`);
+    }
+
+    return [{
+        position: head.position,
+        argument: arg.value,
+        body: groupLambdas(body)
+    }];
+};
+
+const groupsToExpression = (groups: LambdaSet): Expression =>
+    groups.reduce<Expression>((a, b) => {
+        if (Array.isArray(b)) {
+            return application(a, groupsToExpression(b));
+        }
+
+        if ('type' in b) {
+            return application(a, identifier(b.position, b.value));
+        }
+
+        const { position, argument, body } = b;
+
+        const l = lambda(position, argument, groupsToExpression(body))
+
+        return application(a, l);
+    }, empty);
 
 export const parseLambda = (code: string): Expression => {
     const tokens = [...tokenize(rules, code)];
 
-    return parseLambdaFromTokens(tokens);
+    //Pass one: Group blocks
+    const blocks = groupBlocks(tokens);
+
+    //Pass two: Group lambdas
+    const grouped = groupLambdas(blocks);
+
+    //Pass three: build applications
+    return groupsToExpression(grouped);
 };

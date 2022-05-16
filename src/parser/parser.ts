@@ -20,7 +20,7 @@ const groupBlocks = (tokens: Token[], depth: number = 0): Block => {
                 if (depth === 0) {
                     throw new Error(`Invalid end block at position ${head.position}.  Current chain: ${JSON.stringify(results)}`)
                 }
-                
+
                 return results;
             default:
                 results.push(head);
@@ -39,36 +39,42 @@ interface PartialLambda {
 type LambdaSet = (Token | PartialLambda | LambdaSet)[]
 
 const groupLambdas = (blocks: Block): LambdaSet => {
-    const [head, ...rest] = blocks;
+    const results = [];
 
-    if(!head) {
-        return [];
+    while (blocks.length > 0) {
+        const head = blocks.shift()!;
+
+        if (Array.isArray(head)) {
+            results.push(groupLambdas(head));
+            continue;
+        }
+
+        if (head.type !== tokenTypes.startBind) {
+            results.push(head);
+            continue;
+        }
+
+        const arg = blocks.shift();
+        const separator = blocks.shift();
+        
+
+        if (
+            Array.isArray(arg) ||
+            arg?.type !== tokenTypes.identifier ||
+            Array.isArray(separator) ||
+            separator?.type !== tokenTypes.endBind
+        ) {
+            throw new Error(`Invalid lambda at position ${head.position}.`);
+        }
+
+        results.push({
+            position: head.position,
+            argument: arg.value,
+            body: groupLambdas(blocks)
+        });
     }
 
-    if (Array.isArray(head)) {
-        return [groupLambdas(head), ...groupLambdas(rest)];
-    }
-
-    if (head.type !== tokenTypes.startBind) {
-        return [head, ...groupLambdas(rest)];
-    }
-
-    const [arg, separator, ...body] = rest;
-
-    if (
-        Array.isArray(arg) ||
-        arg?.type !== tokenTypes.identifier ||
-        Array.isArray(separator) ||
-        separator?.type !== tokenTypes.endBind
-    ) {
-        throw new Error(`Invalid lambda at position ${head.position}.`);
-    }
-
-    return [{
-        position: head.position,
-        argument: arg.value,
-        body: groupLambdas(body)
-    }];
+    return results;
 };
 
 const groupsToExpression = (groups: LambdaSet): Expression =>

@@ -9,6 +9,6 @@ export const expressionToString = (expression: Expression): string => {
         case 'application':
             return `(${expressionToString(expression.left)} ${expressionToString(expression.right)})`
         case 'lambda':
-            return `λ${expression.argument}.(${expressionToString(expression.expression)})`;
+            return `(λ${expression.argument}.${expressionToString(expression.expression)})`;
     }
 };

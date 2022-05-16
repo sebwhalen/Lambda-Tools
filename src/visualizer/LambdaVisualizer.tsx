@@ -1,4 +1,5 @@
 import { Application, Expression, Identifier, Lambda } from "parser/expressions";
+import { expressionToString } from "parser/expressionToString";
 import { parseLambda } from "parser/parser";
 
 interface LambdaVisualizerProps {
@@ -55,7 +56,12 @@ export const LambdaVisualizer = ({ expression }: LambdaVisualizerProps) => {
         console.log(e);
     }
 
-    return (parsedExpression)
-        ? <ExpressionNode {...parsedExpression} />
-        : <p>Expression could not be parsed.</p>;
+    return <section>
+        <p>{parsedExpression ? expressionToString(parsedExpression) : ''}</p>
+        
+        {(parsedExpression)
+            ? <ExpressionNode {...parsedExpression} />
+            : <p>Expression could not be parsed.</p>
+        }
+    </section>;
 };

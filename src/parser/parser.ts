@@ -84,12 +84,12 @@ const groupsToExpression = (groups: LambdaSet): Expression =>
         }
 
         if ('type' in b) {
-            return application(a, identifier(b.position, b.value));
+            return application(a, identifier(b.value, b.position));
         }
 
         const { position, argument, body } = b;
 
-        const l = lambda(position, argument, groupsToExpression(body))
+        const l = lambda(argument, groupsToExpression(body), position)
 
         return application(a, l);
     }, empty);

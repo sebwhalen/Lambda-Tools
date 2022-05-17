@@ -10,7 +10,7 @@ export interface Identifier {
     value: string;
 }
 
-export const identifier = (position: number, value: string): Identifier =>
+export const identifier = (value: string, position: number = 0): Identifier =>
 ({
     type: 'identifier',
     position,
@@ -46,7 +46,7 @@ export interface Lambda {
     expression: Expression;
 }
 
-export const lambda = (position: number, argument: string, expression: Expression): Lambda => {
+export const lambda = (argument: string, expression: Expression, position: number = 0): Lambda => {
     if(expression === empty) {
         throw new Error(`Invalid lambda at position ${position}`)
     }

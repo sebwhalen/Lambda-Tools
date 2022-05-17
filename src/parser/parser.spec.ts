@@ -10,15 +10,15 @@ describe('parseLambda', () => {
 
         {
             input: 'a',
-            output: identifier(0, 'a')
+            output: identifier('a', 0)
         },
 
         {
             input: 'a b',
             output:
                 application(
-                    identifier(0, 'a'),
-                    identifier(2, 'b')
+                    identifier('a', 0),
+                    identifier('b', 2)
                 )
         },
 
@@ -27,10 +27,10 @@ describe('parseLambda', () => {
             output:
                 application(
                     application(
-                        identifier(0, 'a'),
-                        identifier(2, 'b')
+                        identifier('a', 0),
+                        identifier('b', 2)
                     ),
-                    identifier(4, 'c')
+                    identifier('c', 4)
                 )
         },
 
@@ -38,10 +38,10 @@ describe('parseLambda', () => {
             input: 'a (b c)',
             output:
                 application(
-                    identifier(0, 'a'),
+                    identifier('a', 0),
                     application(
-                        identifier(3, 'b'),
-                        identifier(5, 'c')
+                        identifier('b', 3),
+                        identifier('c', 5)
                     )
                 )
         },
@@ -50,9 +50,9 @@ describe('parseLambda', () => {
             input: 'λa.a',
             output:
                 lambda(
-                    0,
                     'a',
-                    identifier(3, 'a')
+                    identifier('a', 3),
+                    0
                 )
         },
 
@@ -61,19 +61,19 @@ describe('parseLambda', () => {
             output:
                 application(
                     application(
-                        identifier(0, 'a'),
+                        identifier('a', 0),
                         application(
-                            identifier(3, 'b'),
-                            identifier(5, 'c')
+                            identifier('b', 3),
+                            identifier('c', 5)
                         )
                     ),
                     lambda(
-                        9,
                         'a',
                         application(
-                            identifier(13, 'd'),
-                            identifier(15, 'ea')
-                        )
+                            identifier('d', 13),
+                            identifier('ea', 15)
+                        ),
+                        9
                     )
                 )
         },
@@ -83,15 +83,15 @@ describe('parseLambda', () => {
             output:
                 application(
                     lambda(
-                        1,
                         'a',
                         lambda(
-                            5,
                             'b',
-                            identifier(8, 'a')
-                        )
+                            identifier('a', 8),
+                            5
+                        ),
+                        1
                     ),
-                    identifier(12, 'c')
+                    identifier('c', 12)
                 )
         }
     ]

@@ -10,21 +10,20 @@ describe('expressionToString', () => {
         {
             input:
                 application(
-                    identifier(0, 'a'),
-                    identifier(0, 'b')
+                    identifier('a'),
+                    identifier('b')
                 ),
             expected: '(a b)'
         },
         {
             input: 
                 application(
-                    identifier(0, 'a'),
+                    identifier('a'),
                     lambda(
-                        0, 
                         'b', 
                         application(
-                            identifier(0, 'c'), 
-                            identifier(0, 'b')
+                            identifier('c'), 
+                            identifier('b')
                         )
                     )
                 ),

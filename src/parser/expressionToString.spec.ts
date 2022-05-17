@@ -28,7 +28,7 @@ describe('expressionToString', () => {
                         )
                     )
                 ),
-            expected: '(a λb.(c b))'
+            expected: '(a (λb.(c b)))'
         }
     ].forEach(({ input, expected }) =>
         test(`Expression for '${expected}' parses correctly.`, () =>
